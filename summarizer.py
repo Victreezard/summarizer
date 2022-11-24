@@ -1,78 +1,70 @@
-# TODO: from dotenv import load_dotenv
+from dotenv import load_dotenv
+from os import getenv
+from os.path import abspath, dirname, join
+from time import perf_counter
 import json
 import obspython as obs
-import tkinter as tk
-import tkinter.scrolledtext as st
 import urllib.parse
 import urllib.request
 
 
+current_dir = abspath(dirname(__file__))
+load_dotenv(join(current_dir, ".env"))
+
 # ---------------Custom Functions---------------
 
 def call_smmry(text: str) -> str:
-    # TODO: Use env file
-    API_KEY = "E59E875EE2"
+    API_KEY = getenv("API_KEY")
     API_ENDPOINT = "https://api.smmry.com"
 
     # Parameters that go with the URL
     params = {
-        # "sm_api_input": input_text,
         "SM_API_INPUT": text,
         "SM_API_KEY": API_KEY,
         "SM_LENGTH": "3",
-        "SM_KEYWORD_COUNT": "3"
+        "SM_KEYWORD_COUNT": "3",
         # "SM_URL"=X,
         # "SM_WITH_BREAK",
         # "SM_WITH_ENCODE",
         # "SM_IGNORE_LENGTH",
-        # "SM_QUOTE_AVOID",
-        # "SM_QUESTION_AVOID",
-        # "SM_EXCLAMATION_AVOID"
+        "SM_QUOTE_AVOID": "",
+        "SM_QUESTION_AVOID": "",
+        "SM_EXCLAMATION_AVOID": ""
     }
     # Join base URL and params
     params = urllib.parse.urlencode(params)
     url = API_ENDPOINT + "?" + params
+    # print(f"{url=}")
 
     # Encode text as data to trigger POST
     data = urllib.parse.urlencode({"sm_api_input": text}).encode('ascii')
 
     # SMMRY API call
     with urllib.request.urlopen(url, data) as response:
-        # print(response.geturl())
-        # print(response.info())
-        # print(response.getcode())
+        # print(f"{response.geturl()=}")
+        # print(f"{response.info()=}")
+        # print(f"{response.getcode()=}")
         response = response.read().decode("utf-8")
         response = json.loads(response)
-    # print(response)
-    print(response["sm_api_content"])
 
+    # print(f"{response=}")
     return response["sm_api_content"]
-
-
-def show_window(text: str):
-    # Creating tkinter window
-    win = tk.Tk()
-    win.title("Summary")
-
-    # Creating scrolled text area
-    # widget with Read only by
-    # disabling the state
-    text_area = st.ScrolledText(win, width=30, height=8, font=("Arial", 15) )
-
-    text_area.grid(column=0, pady=10, padx=10)
-
-    # Inserting Text which is read only
-    text_area.insert(tk.INSERT, text)
-
-    # Making the text read only
-    text_area.configure(state='disabled')
-    win.mainloop()
 
 
 def summarize_pressed(props, prop):
     """Update the Output Text"""
-    show_window( call_smmry(text) )
+    time_start = perf_counter()
 
+    summary = call_smmry(text)
+
+    time_stop = perf_counter()
+    time_elapsed = str(time_stop-time_start)
+    obs.obs_data_set_string(settings_copy, "info_text",
+                            formatted_time := f"{time_elapsed=!s}")
+    obs.obs_data_set_string(settings_copy, "result_text", summary)
+    print(formatted_time)
+
+    return True
 
 # ---------------Script Global Functions---------------
 
@@ -87,6 +79,8 @@ def script_defaults(settings):
 def script_update(settings):
     global text
     text = obs.obs_data_get_string(settings, "text_input")
+    global settings_copy
+    settings_copy = settings
 
 
 def script_properties():
@@ -97,5 +91,8 @@ def script_properties():
     # Summarize Button
     obs.obs_properties_add_button(
         props, "button_summarize", "Summarize", summarize_pressed)
+
+    obs.obs_properties_add_text(props, "info_text", "", obs.OBS_TEXT_INFO)
+    obs.obs_properties_add_text(props, "result_text", "Result", obs.OBS_TEXT_MULTILINE)
 
     return props

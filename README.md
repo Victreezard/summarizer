@@ -5,8 +5,8 @@ Python script for OBS that summarizes a given text using [SMMRY API](https://smm
 ## Registration and API key
 An API key is needed to be able to use this script. Follow the instuctions below:
 1. Visit https://smmry.com/api and follow the **API Key** section to register an account and acquire a SMMRY API key
-2. Open the file *creds.env* an place your key there (API_KEY=XXXXXXXXXX)
-3. Save changes made to *creds.env*
+2. Open the file *.env* an place your key there (API_KEY=XXXXXXXXXX)
+3. Save changes made to *.env*
 ## Adding to OBS
 This script is intended to be used in OBS. **TODO: add images**
 1. In the menu bar, click *Tools* then *Scripts*
@@ -15,4 +15,4 @@ This script is intended to be used in OBS. **TODO: add images**
 4. Input text to be summarized inside the textbox on the right
 5. Click the *Summarize* button and a new window will appear with the summarized output
 ## Settings
-**TODO**
+**Still TODO**
